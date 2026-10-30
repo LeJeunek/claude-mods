@@ -1,0 +1,6 @@
+{
+  "name": "replay-theater",
+  "version": "0.1.0",
+  "description": "A pane that records every tool call as a scene, one act per prompt, and plays the session back: play, pause, step, scrub, with diffs for edits and output for commands.",
+  "types": "./types/index.d.ts"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "my-mods",
+  "owner": { "name": "LeJeunek" },
+  "plugins": [
+    { "name": "savvy-progress", "source": "./plugins/savvy-progress" },
+    { "name": "file-tree", "source": "./plugins/file-tree" },
+    { "name": "replay-theater", "source": "./plugins/replay-theater" }
+  ]
+}

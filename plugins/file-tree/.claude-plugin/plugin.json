@@ -1,0 +1,6 @@
+{
+  "name": "file-tree",
+  "version": "0.1.0",
+  "description": "A side pane with the files Claude read, edited or created this session as a tree, plus a browsable view of the whole folder; click a file to @-mention it.",
+  "types": "./types/index.d.ts"
+}

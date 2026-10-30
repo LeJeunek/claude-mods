@@ -1,0 +1,6 @@
+{
+  "name": "savvy-progress",
+  "version": "0.1.0",
+  "description": "A live progress band above the prompt: elapsed time, plan-aware progress bar, what Claude is doing now, and a turn summary.",
+  "types": "./types/index.d.ts"
+}
