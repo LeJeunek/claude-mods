@@ -11,9 +11,9 @@ Three mods for Claude Code. Each one has its own README in `plugins/`.
 At the prompt of a terminal session:
 
 ```
-/plugin install savvy-progress --marketplace LeJeunek/claude-mods
-/plugin install file-tree --marketplace LeJeunek/claude-mods
-/plugin install replay-theater --marketplace LeJeunek/claude-mods
+/plugin install savvy-progress --marketplace LeJeunek/ClaudeMods
+/plugin install file-tree --marketplace LeJeunek/ClaudeMods
+/plugin install replay-theater --marketplace LeJeunek/ClaudeMods
 ```
 
 Answer `y` to add the marketplace, then pick a scope (user loads them in every session).
@@ -21,12 +21,12 @@ Answer `y` to add the marketplace, then pick a scope (user loads them in every s
 From a shell:
 
 ```
-claude plugin install savvy-progress --marketplace LeJeunek/claude-mods
-claude plugin install file-tree --marketplace LeJeunek/claude-mods
-claude plugin install replay-theater --marketplace LeJeunek/claude-mods
+claude plugin install savvy-progress --marketplace LeJeunek/ClaudeMods
+claude plugin install file-tree --marketplace LeJeunek/ClaudeMods
+claude plugin install replay-theater --marketplace LeJeunek/ClaudeMods
 ```
 
-In the desktop app: click + next to the prompt box, then Plugins, Add marketplace with `LeJeunek/claude-mods`, then Add plugin.
+In the desktop app: click + next to the prompt box, then Plugins, Add marketplace with `LeJeunek/ClaudeMods`, then Add plugin.
 
 ## Turn them on for everyone working in a repository
 
@@ -35,7 +35,7 @@ Add this to the repository's `.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "my-mods": { "source": { "source": "github", "repo": "LeJeunek/claude-mods" } }
+    "my-mods": { "source": { "source": "github", "repo": "LeJeunek/ClaudeMods" } }
   },
   "enabledPlugins": {
     "savvy-progress@my-mods": true,
