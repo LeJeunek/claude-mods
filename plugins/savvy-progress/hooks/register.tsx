@@ -286,7 +286,7 @@ export const register: Register = on => {
             running,
             activity: isIdle ? 'Thinking' : a.activity,
             kind: isIdle ? 'other' : a.kind,
-            steps: hasFailed ? a.steps : planAfter(tool, e as unknown as Args, a.steps ?? []),
+            steps: hasFailed ? a.steps : planAfter(tool, e as unknown as Args, a.steps ?? [], ran.result),
             calls: (a.calls ?? []).map(one => (one.id === call.id ? { ...one, status, durationMs } : one)),
           }
         }),
@@ -333,7 +333,7 @@ export const register: Register = on => {
         ...changed,
         running,
         failures: p.failures + (hasFailed ? 1 : 0),
-        plan: hasFailed ? p.plan : planAfter(tool, e as unknown as Args, p.plan),
+        plan: hasFailed ? p.plan : planAfter(tool, e as unknown as Args, p.plan, ran.result),
         activity: running === 0 ? 'Thinking' : p.activity,
         kind: running === 0 ? 'other' : p.kind,
         actions: (p.actions ?? []).map(one => (one.id === call.id ? { ...one, status, durationMs } : one)),
@@ -1291,7 +1291,12 @@ function describe(e: ToolCallInput): Look {
     case 'Task':
       return look('agent', `Delegating: ${clip(text('description'), 44)}`, clip(text('description'), 48))
     case 'TodoWrite':
+    case 'TaskCreate':
+    case 'TaskUpdate':
       return look('plan', 'Updating the plan', 'task list')
+    case 'TaskList':
+    case 'TaskGet':
+      return look('plan', 'Reading the plan', 'task list')
   }
   if (tool.endsWith('__update_plan')) {
     return look('plan', 'Updating the plan', 'task list')
@@ -1325,10 +1330,14 @@ function callTime(ms: number) {
   return ms < 60_000 ? `${(ms / 1000).toFixed(1)}s` : clock(ms)
 }
 
-// Follows the task list Claude keeps: TodoWrite in a terminal, update_plan in the desktop app.
-function planAfter(tool: string, args: Args, plan: PlanStep[]): PlanStep[] {
+// Follows the task list Claude keeps: TodoWrite in a terminal, update_plan in the desktop app,
+// the task tools (TaskCreate, TaskUpdate, TaskList) in a cloud session.
+function planAfter(tool: string, args: Args, plan: PlanStep[], result?: unknown): PlanStep[] {
   if (tool === 'TodoWrite' && Array.isArray(args.todos)) {
     return toSteps(args.todos)
+  }
+  if (tool === 'TaskCreate' || tool === 'TaskUpdate' || tool === 'TaskList') {
+    return tasksAfter(tool, args, plan, result)
   }
   if (tool.endsWith('__wrap_up')) {
     return plan.map(step => ({ ...step, status: 'completed' }))
@@ -1374,6 +1383,54 @@ function toSteps(list: unknown[]): PlanStep[] {
       },
     ]
   })
+}
+
+// The task tools keep one task per call: TaskCreate's result names the new task's id,
+// TaskUpdate changes a task by that id, and TaskList's result is the whole list.
+function tasksAfter(tool: string, args: Args, plan: PlanStep[], result: unknown): PlanStep[] {
+  const out = typeof result === 'object' && result !== null ? (result as Args) : {}
+  if (tool === 'TaskList') {
+    return Array.isArray(out.tasks) ? out.tasks.flatMap(toTaskStep) : plan
+  }
+  if (tool === 'TaskCreate') {
+    const task = typeof out.task === 'object' && out.task !== null ? (out.task as Args) : {}
+    const subject = typeof task.subject === 'string' ? task.subject : args.subject
+    const added = toTaskStep({ id: task.id, subject, status: 'pending' })
+
+    return added.length === 0 ? plan : [...plan.filter(step => step.id !== added[0]?.id), ...added]
+  }
+  const id = args.taskId
+  if (typeof id !== 'string') {
+    return plan
+  }
+  if (args.status === 'deleted') {
+    return plan.filter(step => step.id !== id)
+  }
+  const { status, subject } = args
+  const isKnown = status === 'pending' || status === 'in_progress' || status === 'completed'
+
+  return plan.map(step =>
+    step.id === id
+      ? {
+          ...step,
+          content: typeof subject === 'string' ? subject : step.content,
+          status: isKnown ? (status as StepStatus) : step.status,
+        }
+      : step,
+  )
+}
+
+function toTaskStep(item: unknown): PlanStep[] {
+  if (typeof item !== 'object' || item === null) {
+    return []
+  }
+  const { id, subject, status } = item as Args
+  if (typeof id !== 'string') {
+    return []
+  }
+  const isKnown = status === 'pending' || status === 'in_progress' || status === 'completed'
+
+  return [{ id, content: typeof subject === 'string' ? subject : '', status: isKnown ? (status as StepStatus) : 'pending' }]
 }
 
 function currentStep(plan: PlanStep[]): { index: number; content: string } | null {

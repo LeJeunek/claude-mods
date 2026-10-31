@@ -596,6 +596,14 @@ function staged(e: ToolCallInput, cwd: string): Staged {
       })
     case 'TodoWrite':
       return scene('plan', 'Plan', 'Updated the plan', { code: checklist(args.todos) })
+    // A cloud session keeps its plan with the task tools, one task per call.
+    case 'TaskCreate':
+      return scene('plan', 'Plan', `Added: ${clip(oneLine(text(args.subject)), 80)}`)
+    case 'TaskUpdate': {
+      const change = text(args.status) || (text(args.subject) ? `renamed to ${clip(oneLine(text(args.subject)), 60)}` : 'updated')
+
+      return scene('plan', 'Plan', `Task ${text(args.taskId)}: ${change}`)
+    }
   }
   if (tool.endsWith('__update_plan')) {
     return scene('plan', 'Plan', 'Updated the plan', {

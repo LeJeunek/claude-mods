@@ -2,7 +2,8 @@ export type Kind = 'read' | 'edit' | 'run' | 'search' | 'web' | 'agent' | 'plan'
 
 export type StepStatus = 'pending' | 'in_progress' | 'completed'
 
-export type PlanStep = { content: string; status: StepStatus }
+// `id` names a task kept with the task tools (TaskCreate, TaskUpdate), which refer to it by id.
+export type PlanStep = { content: string; status: StepStatus; id?: string }
 
 export type Outcome = 'answer' | 'aborted' | 'refusal' | 'error'
 
